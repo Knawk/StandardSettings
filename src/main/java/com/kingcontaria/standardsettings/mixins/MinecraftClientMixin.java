@@ -1,15 +1,23 @@
 package com.kingcontaria.standardsettings.mixins;
 
 import com.kingcontaria.standardsettings.StandardSettings;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.RunArgs;
+import net.minecraft.client.gui.screen.GameMenuScreen;
+import net.minecraft.client.gui.screen.Screen;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -18,15 +26,31 @@ import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static com.kingcontaria.standardsettings.StandardSettings.compareVersions;
+
 @Mixin(MinecraftClient.class)
 
-public class MinecraftClientMixin {
+public abstract class MinecraftClientMixin {
+
+    @Unique
+    private int tickCount = 22;
+
+    @Shadow public abstract void openPauseMenu(boolean bl);
+
+    @Shadow @Nullable public Screen currentScreen;
 
     // initialize StandardSettings, doesn't use ClientModInitializer because GameOptions need to be initialized first
     @Inject(method = "<init>", at = @At("RETURN"))
     private void initializeStandardSettings(RunArgs args, CallbackInfo ci) {
         StandardSettings.initializeEntityCulling();
-
+        if (FabricLoader.getInstance().getModContainer("worldpreview").isPresent()) {
+            try {
+                // check that WorldPreview.showMenu exists and is static boolean
+                Field showMenu = Class.forName("me.voidxwalker.worldpreview.WorldPreview")
+                        .getField("showMenu");
+                StandardSettings.hasWP = Modifier.isStatic(showMenu.getModifiers()) && showMenu.getType() == boolean.class;
+            } catch (ClassNotFoundException | NoSuchFieldException ignored) {}
+        }
         // create standardoptions.txt
         if (!StandardSettings.standardoptionsFile.exists()) {
             StandardSettings.LOGGER.info("Creating StandardSettings File...");
@@ -81,10 +105,11 @@ public class MinecraftClientMixin {
         // Finds the highest StandardSettings version of the file chain
         int[] highestVersion = new int[]{1,2,0,0};
         for (int[] fileVersion : fileVersionsMap.values()) {
-            if (StandardSettings.compareVersions(highestVersion, fileVersion)) {
+            if (compareVersions(highestVersion, fileVersion)) {
                 highestVersion = fileVersion;
             }
         }
+        System.out.println(Arrays.toString(highestVersion) + "< THIS IS THE FILE VERSION >??" + compareVersions(highestVersion, new int[]{1, 2, 3, -1000}));
 
         // Update standardoptions file if necessary and update the StandardSettings versions marked to the file
         try {
@@ -94,7 +119,7 @@ public class MinecraftClientMixin {
                 StandardSettings.LOGGER.info("Finished updating standardoptions.txt");
             }
             for (Map.Entry<UserDefinedFileAttributeView, int[]> entry : fileVersionsMap.entrySet()) {
-                if (StandardSettings.compareVersions(entry.getValue(), StandardSettings.version)) {
+                if (compareVersions(entry.getValue(), StandardSettings.version)) {
                     try {
                         entry.getKey().write("standardsettings", Charset.defaultCharset().encode(StandardSettings.getVersion()));
                     } catch (IOException e) {
@@ -146,6 +171,19 @@ public class MinecraftClientMixin {
             StandardSettings.lastWorld = StandardSettings.client.getServer().getIconFile().getParentFile().getName();
         } catch (Exception e) {
             // empty catch block
+        }
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void standardSettings_OnPauseNextTick(CallbackInfo ci) {
+        if (StandardSettings.f3PauseSoon) {
+            if (tickCount > 0) {
+                tickCount--;
+                return;
+            }
+            tickCount = 1;
+            openPauseMenu(true);
+            StandardSettings.f3PauseSoon = !(currentScreen instanceof GameMenuScreen);
         }
     }
 
