@@ -26,7 +26,7 @@ import java.util.*;
 @Environment(value= EnvType.CLIENT)
 public class StandardSettings {
 
-    public static final int[] version = new int[]{1,2,2,0};
+    public static final int[] version = new int[]{1,2,3,-1000};
     public static final Logger LOGGER = LogManager.getLogger();
     public static final MinecraftClient client = MinecraftClient.getInstance();
     public static final GameOptions options = client.options;
@@ -34,6 +34,9 @@ public class StandardSettings {
     public static final File standardoptionsFile = new File(FabricLoader.getInstance().getConfigDir().resolve("standardoptions.txt").toUri());
     public static boolean changeOnWindowActivation = false;
     public static boolean changeOnResize = false;
+    public static boolean hasWP = false;
+    public static boolean f3PauseSoon = false;
+    public static boolean f3PauseOnWorldLoad = false;
     private static Optional<Integer> renderDistanceOnWorldJoin = Optional.empty();
     private static Optional<Double> fovOnWorldJoin = Optional.empty();
     private static Optional<Integer> guiScaleOnWorldJoin = Optional.empty();
@@ -215,6 +218,7 @@ public class StandardSettings {
                     case "guiScaleOnWorldJoin": guiScaleOnWorldJoin = Optional.of(Integer.parseInt(strings[1])); break;
                     case "renderDistanceOnWorldJoin": renderDistanceOnWorldJoin = Optional.of(Integer.parseInt(strings[1])); break;
                     case "changeOnResize": changeOnResize = Boolean.parseBoolean(strings[1]); break;
+                    case "f3PauseOnWorldLoad": f3PauseOnWorldLoad = Boolean.parseBoolean(strings[1]); break;
                     // Some options.txt settings which aren't accessible in vanilla Minecraft and some unnecessary settings (like Multiplayer stuff) are not included.
                     // also has a few extra settings that can be reset that Minecraft doesn't save to options.txt, but are important in speedrunning
                 }
@@ -253,6 +257,7 @@ public class StandardSettings {
         renderDistanceOnWorldJoin = Optional.empty();
         changeOnResize = false;
         changeOnWindowActivation = false;
+        f3PauseOnWorldLoad = false;
     }
 
     // makes sure the values are within the boundaries of vanilla minecraft / the speedrun.com rule set
@@ -414,8 +419,7 @@ public class StandardSettings {
         for (PlayerModelPart playerModelPart : PlayerModelPart.values()) {
             string.append("modelPart_").append(playerModelPart.getName()).append(":").append(options.getEnabledPlayerModelParts().contains(playerModelPart)).append(l);
         }
-        string.append("chunkborders:").append(l).append("hitboxes:").append(l).append("perspective:").append(l).append("f1:").append(l).append("fovOnWorldJoin:").append(l).append("guiScaleOnWorldJoin:").append(l).append("renderDistanceOnWorldJoin:").append(l).append("changeOnResize:false");
-
+        string.append("chunkborders:").append(l).append("hitboxes:").append(l).append("perspective:").append(l).append("f1:").append(l).append("fovOnWorldJoin:").append(l).append("guiScaleOnWorldJoin:").append(l).append("renderDistanceOnWorldJoin:").append(l).append("changeOnResize:false").append(l).append("f3PauseOnWorldLoad:false");
         return string.toString();
     }
 
@@ -435,6 +439,12 @@ public class StandardSettings {
 
         checking:
         {
+            if (compareVersions(fileVersion, new int[]{1, 2, 3, -1000})) {
+                if (existingLines != null && (existingLines.contains("f3PauseOnWorldLoad"))) {
+                    break checking;
+                }
+                lines.add("f3PauseOnWorldLoad:false");
+            }
             // add lines added in the pre-releases of StandardSettings v1.2.1
             if (compareVersions(fileVersion, new int[]{1, 2, 1, -1000})) {
                 if (existingLines != null && (existingLines.contains("entityCulling") || existingLines.contains("f1") || existingLines.contains("guiScaleOnWorldJoin") || existingLines.contains("changeOnResize"))) {
