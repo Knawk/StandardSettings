@@ -1,15 +1,16 @@
 package com.kingcontaria.standardsettings;
 
 import me.voidxwalker.worldpreview.WorldPreview;
-import net.minecraft.client.MinecraftClient;
 
 public class IfWPExists {
-    public static boolean handleLevelLoadScreenRender(MinecraftClient minecraft) {
+    public static boolean handleLevelLoadScreenRender() {
         if (StandardSettings.f3PauseOnWorldLoad && StandardSettings.hasWP) {
-            if (!minecraft.isWindowFocused() && WorldPreview.renderingPreview) {
+            if (WorldPreview.inPreview) {
                 WorldPreview.showMenu = false;
                 return true;
-            } else return WorldPreview.renderingPreview;
+            } else {
+                return false;
+            }
         }
         return true;
     }
