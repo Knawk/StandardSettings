@@ -25,7 +25,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     @Inject(method = "render", at = @At("HEAD"))
     public void standardSettings_render(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (StandardSettings.hasWP && !this.previewPauseDone) {
-            this.previewPauseDone = IfWPExists.handleLevelLoadScreenRender(client);
+            this.previewPauseDone = IfWPExists.handleLevelLoadScreenRender();
         }
     }
 
