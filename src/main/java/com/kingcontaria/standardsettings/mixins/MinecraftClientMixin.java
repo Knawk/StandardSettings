@@ -109,7 +109,6 @@ public abstract class MinecraftClientMixin {
                 highestVersion = fileVersion;
             }
         }
-        System.out.println(Arrays.toString(highestVersion) + "< THIS IS THE FILE VERSION >??" + compareVersions(highestVersion, new int[]{1, 2, 3, -1000}));
 
         // Update standardoptions file if necessary and update the StandardSettings versions marked to the file
         try {

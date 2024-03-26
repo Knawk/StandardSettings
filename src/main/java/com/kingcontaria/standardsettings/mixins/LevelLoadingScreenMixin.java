@@ -23,9 +23,8 @@ public abstract class LevelLoadingScreenMixin extends Screen {
 
     @Inject(method = "render", at = @At("HEAD"))
     public void standardSettings_render(int mouseX, int mouseY, float delta, CallbackInfo ci) {
-
         if (StandardSettings.hasWP && !this.previewPauseDone) {
-            this.previewPauseDone = IfWPExists.handleLevelLoadScreenRender(minecraft);
+            this.previewPauseDone = IfWPExists.handleLevelLoadScreenRender();
         }
     }
 

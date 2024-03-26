@@ -29,7 +29,7 @@ import java.util.*;
 @Environment(value= EnvType.CLIENT)
 public class StandardSettings {
 
-    public static final int[] version = new int[]{1,2,3, 0};
+    public static final int[] version = new int[]{1,2,3,1};
     public static final Logger LOGGER = LogManager.getLogger();
     public static final MinecraftClient client = MinecraftClient.getInstance();
     public static final GameOptions options = client.options;
@@ -499,7 +499,6 @@ public class StandardSettings {
         }
 
         List<String> lines = new ArrayList<>();
-        System.out.println("About to check");
         checking:
         {
             if (compareVersions(fileVersion, new int[]{1, 2, 3, -996})) {
@@ -512,7 +511,6 @@ public class StandardSettings {
                 if (existingLines != null && (existingLines.contains("f3PauseOnWorldLoad"))) {
                     break checking;
                 }
-                System.out.println("Adding line");
                 lines.add("f3PauseOnWorldLoad:false");
             }
             // add lines added in the pre-releases of StandardSettings v1.2.1
