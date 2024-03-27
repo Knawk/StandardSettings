@@ -24,7 +24,7 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	compileOnlyApi files('libs/sodium-1.1.0+20w14infinite.jar')
-	compileOnlyApi files('libs/worldpreview-5.0.0+20w14infinite.jar')
+	compileOnlyApi files('libs/worldpreview-2.3.3+20w14infinite.jar')
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 
